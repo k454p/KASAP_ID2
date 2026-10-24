@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="kasapMaskableGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#047857" />
+      <stop offset="50%" stop-color="#059669" />
+      <stop offset="100%" stop-color="#0f766e" />
+    </linearGradient>
+    <linearGradient id="goldGrad2" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fde047" />
+      <stop offset="100%" stop-color="#f59e0b" />
+    </linearGradient>
+  </defs>
+
+  <!-- Full-bleed background for maskable icon -->
+  <rect width="512" height="512" fill="url(#kasapMaskableGrad)" />
+
+  <!-- Content scaled and centered within 80% safe zone (radius 204px) -->
+  <g transform="translate(136, 100) scale(0.8)">
+    <!-- Bag handles -->
+    <path d="M 85 110 C 85 45, 215 45, 215 110" fill="none" stroke="#ffffff" stroke-width="26" stroke-linecap="round" />
+    
+    <!-- Bag body -->
+    <rect x="40" y="105" width="220" height="240" rx="28" fill="#ffffff" />
+    
+    <!-- Letter K / Cart Emblem -->
+    <path d="M 95 160 L 95 285 M 95 225 L 175 160 M 120 205 L 185 285" fill="none" stroke="#047857" stroke-width="24" stroke-linecap="round" stroke-linejoin="round" />
+    
+    <!-- Gold badge / Star -->
+    <circle cx="215" cy="295" r="34" fill="url(#goldGrad2)" stroke="#ffffff" stroke-width="6" />
+    <path d="M 215 273 L 221 288 L 237 288 L 224 298 L 229 313 L 215 303 L 201 313 L 206 298 L 193 288 L 209 288 Z" fill="#ffffff" />
+  </g>
+
+  <text x="256" y="420" font-family="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="36" font-weight="900" fill="#ffffff" letter-spacing="3" text-anchor="middle">KASAP_ID</text>
+</svg>

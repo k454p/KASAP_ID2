@@ -1,0 +1,6 @@
+{
+  "name": "KASAP_ID",
+  "description": "Platform e-commerce KASAP_ID untuk belanja online, upload dan kelola produk sendiri dengan mudah dan praktis.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
