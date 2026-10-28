@@ -1,10 +1,20 @@
 import { CartItem, Product } from '../types';
 
+// Konstanta Toko - Nirwana Flora
+export const SHOP_INFO = {
+  name: 'Nirwana Flora',
+  location: 'Gapura, Sumenep, Jawa Timur',
+  address: 'Jl. Raya Gapura, Sumenep, Jawa Timur 69472',
+  freeShippingMin: 50000,
+  defaultShippingCost: 15000,
+} as const;
+
 /**
- * Format a numeric amount to Indonesian Rupiah (e.g. Rp1.770.000)
+ * Format a numeric amount to Indonesian Rupiah (e.g. Rp75.000)
+ * Fix: nominal 0 tidak lagi muncul kalau harga belum ke-load dari Supabase
  */
 export function formatRupiah(amount: number): string {
-  if (isNaN(amount) || amount === null || amount === undefined) {
+  if (amount === null || amount === undefined || isNaN(amount)) {
     return 'Rp0';
   }
   const formatted = Math.round(amount)
@@ -15,22 +25,24 @@ export function formatRupiah(amount: number): string {
 
 /**
  * Calculate cart subtotals and totals based on selected items
+ * Fix: shipping gratis kalau subtotal >= 50000 (Gapura) atau voucher free ongkir
  */
 export function calculateCartTotals(
   items: CartItem[],
   voucherDiscountPercentage: number = 0,
-  shippingCost: number = 15000,
-  freeShippingApplied: boolean = true
+  shippingCost: number = SHOP_INFO.defaultShippingCost,
+  freeShippingApplied: boolean = false
 ) {
   const selectedItems = items.filter((item) => item.selected);
   const selectedCount = selectedItems.reduce((acc, item) => acc + item.quantity, 0);
-  
+
   const subtotal = selectedItems.reduce((acc, item) => {
     return acc + (item.product.price * item.quantity);
   }, 0);
 
-  const effectiveShipping = freeShippingApplied || subtotal > 50000 ? 0 : shippingCost;
-  
+  // Gratis ongkir kalau sudah ada flag ATAU subtotal >= 50rb
+  const effectiveShipping = freeShippingApplied || subtotal >= SHOP_INFO.freeShippingMin ? 0 : shippingCost;
+
   const discountAmount = Math.min(
     subtotal,
     Math.round((subtotal * voucherDiscountPercentage) / 100)
@@ -48,7 +60,7 @@ export function calculateCartTotals(
 }
 
 /**
- * Apply voucher code validation and calculate discount percentage
+ * Apply voucher code validation - Voucher khusus Nirwana Flora
  */
 export function validateVoucherCode(code: string): { valid: boolean; discountPercentage: number; message: string } {
   const normalized = code.trim().toUpperCase();
@@ -58,10 +70,10 @@ export function validateVoucherCode(code: string): { valid: boolean; discountPer
 
   const vouchers: Record<string, { percent: number; desc: string }> = {
     'KASAPHIJAU': { percent: 20, desc: 'Diskon 20% Spesial KASAP Hijau' },
-    'EXTRA20': { percent: 20, desc: 'Diskon Extra 20%' },
+    'NIRWANA10': { percent: 10, desc: 'Diskon 10% Nirwana Flora' },
+    'GAPURA15': { percent: 15, desc: 'Diskon 15% Khusus Gapura' },
     'ONGKIRNOL': { percent: 10, desc: 'Diskon 10% + Bebas Ongkir' },
     'HEMAT50': { percent: 50, desc: 'Diskon 50% Flash Deal' },
-    'KASAPID': { percent: 15, desc: 'Diskon 15% Member Baru' },
   };
 
   if (vouchers[normalized]) {
@@ -80,7 +92,7 @@ export function validateVoucherCode(code: string): { valid: boolean; discountPer
 }
 
 /**
- * Filter and sort products
+ * Filter and sort products - alamat sudah disamakan ke Gapura
  */
 export function filterProducts(
   products: Product[],
@@ -104,7 +116,9 @@ export function filterProducts(
       const matchDesc = p.description.toLowerCase().includes(q);
       const matchShop = p.shopName.toLowerCase().includes(q);
       const matchCategory = p.category.toLowerCase().includes(q);
-      if (!matchName && !matchDesc && !matchShop && !matchCategory) return false;
+      // Lokasi Gapura juga bisa dicari
+      const matchLocation = p.location.toLowerCase().includes(q);
+      if (!matchName && !matchDesc && !matchShop && !matchCategory && !matchLocation) return false;
     }
     return true;
   });
@@ -116,7 +130,6 @@ export function filterProducts(
   } else if (sortBy === 'price_desc') {
     result.sort((a, b) => b.price - a.price);
   } else {
-    // popular
     result.sort((a, b) => b.soldCount - a.soldCount);
   }
 
@@ -175,4 +188,26 @@ export function calculateScaledDimensions(
       height: maxDimension,
     };
   }
+}
+
+/**
+ * Helper: normalisasi produk dari Supabase ke tipe Product di app
+ * Dipakai biar alamat & harga dari Supabase yang kosong tidak jadi Rp0 / alamat ngaco
+ */
+export function normalizeProductFromSupabase(row: any): Product {
+  return {
+    id: String(row.id),
+    name: row.title || 'Produk Tanpa Nama',
+    price: row.price ?? 0,
+    rating: 4.9,
+    soldCount: 0,
+    stock: row.stock ?? 0,
+    images: row.image_url ? [row.image_url] : [],
+    category: row.category || 'Bunga',
+    shopName: SHOP_INFO.name,
+    location: SHOP_INFO.location,
+    description: row.description || 'Produk dari Nirwana Flora Gapura',
+    createdAt: row.created_at || new Date().toISOString(),
+    isUserUploaded: true,
+  };
 }
